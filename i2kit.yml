@@ -1,0 +1,52 @@
+
+#TODO: I don't want t deploy things manually, I already have dependencies.
+#  --> K8 should have the solution.
+#TODO: K8 podria adaptarse para hacer i2?
+#TODO: be more granular, ideas of services (maybe we needs route53 for links 2, not only for published ports), replicas, deployments, etcs
+#TODO: ignore variable substitution for now
+#TODO: check kubeless
+jobs:
+  - ci:
+    environment:
+    when:
+    parallel: no
+    run:
+      - lint
+      - web
+      - ci (no recursion)
+    on-error:
+      - rollback
+    # host: size1 -> optimize getting the largest host if same "os"
+commands:
+  lint:
+    environment:
+    when:
+    image: golang:alpine
+    command: go lint
+    on-error: size1
+    os: linux
+    host: size1
+services:
+  web:
+    containers:
+      api:
+        image: elastest/ems
+        environment:
+        links:
+          - pod:alias
+          - dns:alias
+        ports:
+        expose:
+        ...
+      logger:
+        image: sysdig
+        ...
+    network: name of network (or default)
+  os: linux
+  host: size1
+  min: 2
+  max: 5
+dns:
+  ...
+volumes:
+  ...

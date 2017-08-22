@@ -1,0 +1,10 @@
+services:
+  api:
+    ports:
+      - api2:90:http
+    containers:
+      api:
+        image: test
+    host: t2.small
+    min: 2
+    max: 5
