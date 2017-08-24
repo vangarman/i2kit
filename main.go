@@ -30,7 +30,7 @@ func main() {
 		Credentials: credentials.NewSharedCredentials(awsCredentials, "default"),
 	}
 	name := "test"
-	i2kitPath := "./service.yml"
+	i2kitPath := "./example.yml"
 	cmd.AddCommand(
 		deploy.NewDeploy(name, i2kitPath, awsConfig),
 		destroy.NewDestroy(name, awsConfig),

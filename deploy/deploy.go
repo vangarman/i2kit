@@ -91,7 +91,9 @@ func NewDeploy(name, i2kitPath string, awsConfig *aws.Config) *cobra.Command {
 					},
 				)
 				for ; index < len(events.StackEvents); index++ {
-					fmt.Println(events.StackEvents[index].ResourceStatusReason)
+					if events.StackEvents[index].ResourceStatusReason != nil {
+						fmt.Printf("Index: %s\n", *events.StackEvents[index].ResourceStatusReason)
+					}
 				}
 				status := *response.Stacks[0].StackStatus
 				fmt.Printf("Status %s\n", status)

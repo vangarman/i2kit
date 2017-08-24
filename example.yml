@@ -1,0 +1,13 @@
+services:
+  web:
+    ports:
+      - api:90:http
+    links:
+      - service1:alias1
+      - service2:alias2
+    containers:
+      api:
+        image: elastest/ems
+    host: t2.small
+    min: 2
+    max: 5

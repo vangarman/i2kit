@@ -18,41 +18,55 @@ func NewDestroy(name string, awsConfig *aws.Config) *cobra.Command {
 		Short: "Destroy a i2kit application",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			svc := cloudformation.New(session.New(), awsConfig)
-			_, err := svc.DeleteStack(
-				&cloudformation.DeleteStackInput{
+			response, err := svc.DescribeStacks(
+				&cloudformation.DescribeStacksInput{
 					StackName: aws.String(name),
+				},
+			)
+			if len(response.Stacks) == 0 {
+				fmt.Printf("Stack '%s' doesn't exist.\n", name)
+				return nil
+			}
+			stackID := response.Stacks[0].StackId
+			events, err := svc.DescribeStackEvents(
+				&cloudformation.DescribeStackEventsInput{
+					StackName: stackID,
+				},
+			)
+			index := len(events.StackEvents)
+			_, err = svc.DeleteStack(
+				&cloudformation.DeleteStackInput{
+					StackName: stackID,
 				},
 			)
 			if err != nil {
 				return err
 			}
-
 			errors := 0
-			index := 0
 			for {
 				time.Sleep(10 * time.Second)
 				response, err := svc.DescribeStacks(
 					&cloudformation.DescribeStacksInput{
-						StackName: aws.String(name),
+						StackName: stackID,
 					},
 				)
 				if err != nil {
-					errors++
 					fmt.Fprintln(os.Stderr, err)
 					if errors >= 3 {
 						return err
 					}
 					continue
 				}
-				name = *response.Stacks[0].StackId
 				errors = 0
 				events, err := svc.DescribeStackEvents(
 					&cloudformation.DescribeStackEventsInput{
-						StackName: aws.String(name),
+						StackName: stackID,
 					},
 				)
 				for ; index < len(events.StackEvents); index++ {
-					fmt.Println(events.StackEvents[index].ResourceStatusReason)
+					if events.StackEvents[index].ResourceStatusReason != nil {
+						fmt.Printf("Index: %s\n", *events.StackEvents[index].ResourceStatusReason)
+					}
 				}
 				status := *response.Stacks[0].StackStatus
 				fmt.Printf("Status %s\n", status)
